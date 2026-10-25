@@ -1,0 +1,28 @@
+name: monthly heartbeat
+
+on:
+  schedule:
+    - cron: "0 5 1 * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: heartbeat
+  cancel-in-progress: true
+
+jobs:
+  commit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Tocar HEARTBEAT.md
+        run: date -u "+heartbeat %Y-%m-%dT%H:%M:%SZ" > HEARTBEAT.md
+      - name: Commit y push
+        run: |
+          git config user.name "keepalive-bot"
+          git config user.email "actions@github.com"
+          git add HEARTBEAT.md
+          git commit -m "heartbeat $(date -u +%Y-%m-%d)" || exit 0
+          git push
